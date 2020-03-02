@@ -1,0 +1,6 @@
+01 N Party1
+02 S 10
+03 N Party2
+04 S 10
+05 N Party3
+06 S 10
