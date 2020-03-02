@@ -8,78 +8,86 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "types.h"
+#include "string.h"
 
 #define CODE_LENGTH 2
 
-#ifdef STATIC_LIST
+//#ifdef STATIC_LIST
 #include "static_list.h"
-#endif
+//#endif
 //#ifdef DYNAMIC_LIST
-#include "dynamic_list.h"
+//#include "dynamic_list.h"
 //#endif
 #ifdef TEST_LIST
 #include "list/list.h"
 #endif
 
-tList vote=createEmptyList();
-
+tList * vote;
+tNumVotes nullVotes;
 
 void processCommand(char command_number[CODE_LENGTH+1], char command, char param[NAME_LENGTH_LIMIT+1]) {
-
+    printf("********************\n");
+    printf("%s %c: party/totalvoters %s\n", command_number, command, param);
     switch(command) {
-        case 'N': {
-            printf("Read: %s %c %s.\n", command_number, command, param);
-            if (findItem(param,vote)==LNULL) {
+        case 'N': ;
+            if (findItem(param,*vote)==LNULL) {
                 tItemL i;
                 i.numVotes=0;
                 strcpy(i.partyName,param);
                 insertItem(i,LNULL,vote);
-                printf("Insertion successed");
+                printf("* New : %s\n",param);
             }
-            else
-            {
-                printf("Party already exists");
+            else {
+                printf("+ Error : New not possible\n");
             }
-        }
-
-        case 'V':{
-            printf("Vote: %s %c %s.\n", command_number, command, param);
-            tPosL pos=findItem(param,vote);
-            if (pos!=LNULL) {
-                tNumVotes nbvote=getItem(pos,vote).numVotes+1;
-                updateVotes(nbvote,pos,vote);
-                printf("Vote successed");
-            }
-            else
-            {
-                printf("Error during the vote");
-            }
-        }
-
-        case 'S':{
-            tList* current=&vote;
-            tNumVotes totalVote=0;
-            if (isEmptyList(*current))
-            {
-                printf("There is no party right now, statistics impossible");
-            }
-            
-            while (!isEmptyList(*current))
-            {
-                totalVote+=current->data->numVotes;
-            }
-            current=&vote;
-            printf("Number total of votes: %d",totalVote);
-            while (!isEmptyList(*current))
-            {
-                printf("The party: %s obtained %d percent of votes", current->data->partyName, current->data->numVotes/totalVote);
-            }
-        }
-        
-        default: {
             break;
-        }
+        case 'V': ;
+            tPosL pos=findItem(param,*vote);
+            if (pos!=LNULL) {
+                tNumVotes nbvote=getItem(pos,*vote).numVotes+1;
+                updateVotes(nbvote,pos,vote);
+                printf("* Vote: party %s⎵numvotes⎵%i", getItem(pos, *vote).partyName, getItem(pos, *vote).numVotes);
+            }
+            else
+            {
+                printf("+ Error: Vote not possible. Party %s not found.⎵NULLVOTE\n", param);
+                nullVotes++;
+            }
+            break;
+        case 'S': ;
+            tPosL current = first(*vote);
+            tNumVotes totalVote = 0;
+            double totalVoters = atoi(param);
+            while (current != NULL)
+            {
+                tItemL tmp = getItem(current, *vote);
+                totalVote+=tmp.numVotes;
+                current = next(current, *vote);
+            }
+            current=first(*vote);;
+            while (current != NULL) {
+                tItemL tmp = getItem(current, *vote);
+                printf("Party %s numvotes %i (%f%%)\n", tmp.partyName, tmp.numVotes, tmp.numVotes / totalVoters);
+                current = next(current, *vote);
+            }
+            printf("Null votes %d\n", nullVotes);
+            printf("Participation: %i votes from %f voters (%f%%)\n",totalVote, totalVoters, totalVote/totalVoters);
+            break;
+        case 'I': ;
+            tPosL post=findItem(param,*vote);
+            if (post!=LNULL) {
+                deleteAtPosition(post, vote);
+                printf("* Illegalize: party %s", getItem(post, *vote).partyName);
+            }
+            else
+            {
+                printf("+ Error: Illegalize not possible");
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -104,6 +112,10 @@ void readTasks(char *filename) {
 int main(int nargs, char **args) {
 
     char *file_name = "new.txt";
+    nullVotes = 0;
+    vote = (tList*) malloc(100 * sizeof(tList));
+
+    createEmptyList(vote);
 
     if (nargs > 1) {
         file_name = args[1];
@@ -112,10 +124,7 @@ int main(int nargs, char **args) {
         file_name = INPUT_FILE;
         #endif
     }
-
     readTasks(file_name);
 
     return 0;
 }
-
-
