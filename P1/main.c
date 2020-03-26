@@ -17,12 +17,12 @@
 #ifdef STATIC_LIST
 #include "static_list.h"
 #endif
-//#ifdef DYNAMIC_LIST
-//#include "dynamic_list.h"
-//#endif
-//#ifdef TEST_LIST
-//#include "list/list.h"
-//#endif
+#ifdef DYNAMIC_LIST
+#include "dynamic_list.h"
+#endif
+#ifdef TEST_LIST
+#include "list/list.h"
+#endif
 
 tList * vote;
 tNumVotes nullVotes;
