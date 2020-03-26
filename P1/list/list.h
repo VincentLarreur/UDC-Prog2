@@ -38,5 +38,4 @@ tPosL last(tList);
 tPosL previous(tPosL, tList);
 tPosL next(tPosL, tList);
 
-
 #endif //TEST_LIST_H

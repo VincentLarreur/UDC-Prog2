@@ -48,15 +48,16 @@ void processCommand(char command_number[CODE_LENGTH+1], char command, char param
             }
             break;
         case 'V': ;
+            printf("%s %c: party %s\n", command_number, command, param);
             tPosL pos=findItem(param,*vote);
             if (pos!=LNULL) {
                 tNumVotes nbvote=getItem(pos,*vote).numVotes+1;
                 updateVotes(nbvote,pos,vote);
-                printf("* Vote: party %s⎵numvotes⎵%i", getItem(pos, *vote).partyName, getItem(pos, *vote).numVotes);
+                printf("* Vote: party %s numvotes %i\n", getItem(pos, *vote).partyName, getItem(pos, *vote).numVotes);
             }
             else
             {
-                printf("+ Error: Vote not possible. Party %s not found.⎵NULLVOTE\n", param);
+                printf("+ Error: Vote not possible. Party %s not found. NULLVOTE\n", param);
                 nullVotes++;
             }
             break;
@@ -74,17 +75,26 @@ void processCommand(char command_number[CODE_LENGTH+1], char command, char param
             current=first(*vote);;
             while (current != LNULL) {
                 tItemL tmp = getItem(current, *vote);
-                printf("Party %s numvotes %i (%.2f%%)\n", tmp.partyName, tmp.numVotes, tmp.numVotes / totalVoters);
+                if(totalVote == 0)
+                {
+                    printf("Party %s numvotes %i (0.00%)\n", tmp.partyName, tmp.numVotes);
+                } else
+                {
+                    printf("Party %s numvotes %i (%.2f%%)\n", tmp.partyName, tmp.numVotes, (tmp.numVotes / (double) totalVote) *100);
+                }
                 current = next(current, *vote);
             }
             printf("Null votes %d\n", nullVotes);
-            printf("Participation: %i votes from %.0f voters (%.2f%%)\n",totalVote, totalVoters, totalVote/totalVoters);
+            totalVote += nullVotes;
+            printf("Participation: %i votes from %.0f voters (%.2f%%)\n",totalVote, totalVoters, (totalVote/totalVoters)*100);
             break;
         case 'I': ;
             tPosL post=findItem(param,*vote);
+            printf("%s %c: party %s\n", command_number, command, param);
             if (post!=LNULL) {
-                deleteAtPosition(post, vote);
+                nullVotes += getItem(post, *vote).numVotes;
                 printf("* Illegalize: party %s\n", getItem(post, *vote).partyName);
+                deleteAtPosition(post, vote);
             }
             else
             {
