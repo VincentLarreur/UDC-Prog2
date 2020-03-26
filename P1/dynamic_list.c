@@ -6,178 +6,169 @@
  * GROUP: *.*
  * DATE: ** / ** / **
  */
-
 #include "dynamic_list.h"
 
-tList createEmptyList() {
-    tList* result = malloc(sizeof(tList));
-    result->data=malloc(sizeof(tItemL));
-    result->data->numVotes=NULL;
-    strcpy(result->data->partyName,"");
-    result->pos=-1;
-    result->NextItem=NULL;
-    return *result;
+void createEmptyList(tList* l) {
+    l->firstElem=LNULL;
 }
 
-int isEmptyList (tList l) {
-    return(l.pos==-1 && l.NextItem==NULL);
+bool isEmptyList (tList l) {
+    return(l.firstElem==LNULL);
 }
 
 tPosL first (tList l) {
-    return l.pos;
+    return l.firstElem;
 } 
 
+tPosL last(tList l) {
+    if (isEmptyList(l)) return LNULL;
+    tPosL current=l.firstElem;
+    while(current->next!=NULL) {
+        current = current->next;
+    }
+    return current;
+}
+
 tPosL next (tPosL p, tList l) {
-    tList result=l;
-    while (!isEmptyList(result))
+    tPosL result=l.firstElem;
+    while (result!=LNULL)
     {
-        if (result.pos==p) {
-            return result.NextItem->pos;
+        if (result->next==p->next && result->data.partyName==p->data.partyName && result->data.numVotes==p->data.numVotes) {
+            return result->next;
         }
-        else result=*(result.NextItem);
+        else result=result->next;
     }
     return LNULL;
 }
 
 tPosL previous (tPosL p, tList l) {
-    tList result=l;
-    while (!isEmptyList(*(result.NextItem)))
+    tPosL result=l.firstElem;
+    while (result->next!=LNULL)
     {
-        if (result.NextItem->pos==p) {
-            return result.pos;
+        if (result->next==p) {
+            return result;
         }
-        else result=*(result.NextItem);
+        else result=result->next;
     }
     return LNULL;
-    
 }
 
-tTuple insertItem (tItemL i, tPosL p, tList l) {
-    tList* add=malloc(sizeof(tList));
-    tList* current = &l;
-    int bool=0;
-    if (!isEmptyList(l)) {
-        add->data=&i;
-        while (!isEmptyList(*(current->NextItem)))
-        {
-            if (current->NextItem->pos==p) {
-                add->pos=current->pos+1;
-                add->NextItem=current->NextItem;
-                current->NextItem=add;
-                current=current->NextItem->NextItem;
-                while(!isEmptyList(*current)) {
-                    current->pos++;
-                    current=current->NextItem;
-                }
-                bool=1;
-            }
-            else current=current->NextItem;
+bool insertItem (tItemL i, tPosL p, tList* l) {
+    if (p==LNULL) {
+        tPosL elem=malloc(sizeof(tPosL));
+        elem->next=malloc(sizeof(tPosL));
+        elem->next=LNULL;
+        elem->data.numVotes=i.numVotes;
+        strcpy(elem->data.partyName,i.partyName);
+        //we've 2 cases when we have to put it at the end of the list
+        //first case, list is empty
+        if (isEmptyList(*l)) {
+            l->firstElem=elem;
+            return true;
         }
-        if (p==LNULL) {
-            add->pos=current->pos+1;
-            *(add->NextItem)=createEmptyList();
-            current->NextItem=add;
-            bool=1;
+
+        tPosL findEnd;
+        findEnd=l->firstElem;
+
+        //second case, we find the last elem of the list and we put the new item after it
+        while(findEnd->next!=LNULL) {
+            findEnd=next(findEnd,*l);
         }
+        findEnd->next=elem;
+        return true;
     }
+    // Now when we have to put the elem just before the valid position p
     else {
-        if (isEmptyList(*current)) {
-            current->pos=0;
-            *(current->NextItem)=createEmptyList();
-            current->data=&i;
-            bool=1;
+        tPosL findElem = l->firstElem;
+        //first case : one elem in the list and this elem is p
+        if (findElem==p) {
+            tPosL elem2=malloc(sizeof(tPosL));
+            elem2->data=i;
+            elem2->next=l->firstElem;
+            l->firstElem=elem2;
+            return true;
+        }
+        //second case, more than one elem in the list, we have to find p and insert the item before
+        else {
+            while(findElem->next!=p || findElem->next!=LNULL) {
+                findElem = findElem->next;
             }
+            if (findElem->next==LNULL) return false; //we haven't found p in the list
+            tPosL save = findElem->next;
+            tPosL add= malloc(sizeof(tPosL));
+            add->next=save;
+            add->data=i;
+            findElem->next=add;
+            return true;
+        }
     }
-    tTuple *result = malloc(sizeof(tTuple));
-    result->list=l;
-    result->b=bool;
-    return *result;
+
 }
 
-tList deleteAtPosition (tPosL p, tList l) {
-    tList* current = &l;
-    tList* result=&l;
-    if(!isEmptyList(l)) {
-        if (current->pos==p) {
-            tList* memo=current->NextItem;
-            free(current->data);
-            free(current);
-            result=memo;
-            while (!(isEmptyList(*memo)))
-            {
-                memo->pos--;
-                memo=memo->NextItem;
-            }
-            
+void deleteAtPosition (tPosL p, tList* l) {
+    tPosL save;
+    tPosL findElem=l->firstElem;
+    //first case, the first elem of the list is p
+    if (findElem->data.numVotes==p->data.numVotes && strcmp(findElem->data.partyName,p->data.partyName)==0 && findElem->next==p->next) {
+        if (l->firstElem->next!= LNULL) {
+            save=l->firstElem;
+            l->firstElem=l->firstElem->next;
+            free(save);
+            return;
         }
         else {
-            while (!(isEmptyList(*(current->NextItem))))
-            {
-                if(current->NextItem->pos==p) {
-                    if (!isEmptyList(*(current->NextItem->NextItem))) {
-                        tList* save=current->NextItem->NextItem;
-                        tList* todelete=current->NextItem;
-                        current->NextItem=save;
-                        free(todelete->data);
-                        free(todelete);
-                        current=current->NextItem;
-                        while (!isEmptyList(*current))
-                        {
-                            current->pos--;
-                            current=current->NextItem;
-                        }
-                    }
-                    else {
-                        tList* td=current->NextItem;
-                        current->NextItem=NULL;
-                        free(td->data);
-                        free(td);
-                    }
-                }
-                else current=current->NextItem;
-            }
+            save=l->firstElem;
+            l->firstElem=LNULL;
+            free(save);
+            return;
         }
     }
-    return *result;
+    //2nd case, p is not the first elem of the list
+    while(findElem->next!=LNULL && findElem->next->data.numVotes!=p->data.numVotes && strcmp(findElem->next->data.partyName,p->next->data.partyName)!=0
+          && findElem->next->next!=p->next ) {
+        findElem=findElem->next;
+    }
+    if (findElem->next->next!=LNULL) {
+        save=findElem->next;
+        findElem->next=findElem->next->next;
+        free(save);
+        return;
+    }
+    else {
+        save=findElem->next;
+        findElem->next=LNULL;
+        //free(save);
+        return;
+    }
+    return;
 }
 
 tItemL getItem (tPosL p, tList l) {
-    tList search = l;
-    while (!isEmptyList(search))
-    {
-        if (search.pos==p) {
-            return *(search.data);
-        }
-        else search=*(search.NextItem);
+    tPosL findElem=l.firstElem;
+    while(findElem!=LNULL && findElem->data.partyName!=p->data.partyName && findElem->next!=LNULL) {
+        findElem=findElem->next;
     }
-    
+    if (findElem!=LNULL) return findElem->data;
 }
 
-tList updateVotes (tNumVotes v, tPosL p, tList l) {
-    tList search = l;
-    tList* result = &search;
-    while (!isEmptyList(search))
-    {
-        if (search.pos==p) {
-            search.data->numVotes=v;
-        }
-        else search=*(search.NextItem);
+void updateVotes (tNumVotes v, tPosL p, tList* l) {
+    tPosL findElem=l->firstElem;
+    while(findElem!=p) {
+        findElem=findElem->next;
     }
-    return *result;
+    findElem->data.numVotes=v;
 }
 
 tPosL findItem (tPartyName pn, tList l) {
-    tList search = l;
-    while (!isEmptyList(search))
-    {
-        if (strcmp(search.data->partyName,pn)) {
-            return search.pos;
-        }
-        else search=*(search.NextItem);
+    tPosL findItem=l.firstElem;
+    if (isEmptyList(l)) return LNULL;
+    findItem->next=l.firstElem->next;
+    strcpy(findItem->data.partyName,l.firstElem->data.partyName);
+    while(findItem!=LNULL) {
+        if (strcmp(findItem->data.partyName,pn)==0) {
+        return findItem;
     }
-    return LNULL;
+        findItem=findItem->next;
+    }
+    return findItem;
 }
-
-
-
-/* Write your code here... */
