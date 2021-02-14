@@ -1,9 +1,9 @@
 # Pro2-P1
 UDC Practica 1 List Programacion 2
 
-This second practical exercise consists in extending the features of the system, which will be now in charge of managing several polling stations simultaneously. The system will be responsible for keeping an updated vote count of all the voting centers (i.e. the polling stations) and for showing electoral statistics about them. For this purpose, several data structures will be used.
+Implementation of the counting system for the electronic voting machines that will be used in the polling stations during the next elections. The system will take account of the different political parties that have received votes in a certain polling station, the number of votes given to each party, the amount of null votes and the turnout. The system must also allow for making parties illegal.
 
-The aim of this work is to understand how several abstract data types (ADTs) work, how they can be implemented and how the interdependencies between them can be managed.
+The aim of this work is to practise the concept of independence of implementation in the case of Abstract Data Types (ADTs). The student is asked to create two different implementations of an UNORDERED LIST, a STATIC implementation and a DYNAMIC implementation, which must work in a fully interchangeable way. So, the main program must not make any assumptions about the way an ADT is implemented.
 
 
 Implementation:
